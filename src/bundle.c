@@ -260,9 +260,15 @@ gboolean check_bundle(const gchar *bundlename, gsize *size, gboolean verify, GEr
 
 	r_context_begin_step("check_bundle", "Checking bundle", verify);
 
-	if (!r_context()->config->keyring_path) {
+	if (!r_context()->config->keyring_path && !r_context()->certpath) {
 		g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_EXIST, "No keyring file provided");
 		goto out;
+	}
+
+	// if keyring_path does not exist but a certpath has been specified
+	// override the keyring_path with the certpath
+	if (!r_context()->config->keyring_path && r_context()->certpath) {
+		r_context()->config->keyring_path = g_strdup(r_context()->certpath);
 	}
 
 	g_message("Reading bundle: %s", bundlename);
